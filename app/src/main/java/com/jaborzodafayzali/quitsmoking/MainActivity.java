@@ -2,9 +2,10 @@ package com.jaborzodafayzali.quitsmoking;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.content.Context;
+import android.os.Handler;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -18,13 +19,21 @@ public class MainActivity extends Activity {
 
     private SharedPreferences prefs;
 
-    private TextView timerText;
-    private TextView cigarettesText;
-    private TextView moneyText;
+    private TextView timer;
+    private TextView cigarettes;
+    private TextView money;
 
     private long startTime;
-    private int cigarettesPerDay;
-    private float pricePerCigarette;
+
+    private final Handler handler = new Handler();
+
+    private final Runnable timerRunnable = new Runnable() {
+        @Override
+        public void run() {
+            updateScreen();
+            handler.postDelayed(this, 1000);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,9 +43,6 @@ public class MainActivity extends Activity {
 
         startTime = prefs.getLong("start_time", 0);
 
-        cigarettesPerDay = prefs.getInt("cigarettes_per_day", 10);
-        pricePerCigarette = prefs.getFloat("price_per_cigarette", 50f);
-
         if (startTime == 0) {
             startTime = System.currentTimeMillis();
 
@@ -45,163 +51,278 @@ public class MainActivity extends Activity {
                     .apply();
         }
 
-        createInterface();
+        createScreen();
+        updateScreen();
     }
 
-    private TextView text(String value, int size) {
+    private TextView createText(
+            String text,
+            int size,
+            boolean bold
+    ) {
 
-        TextView t = new TextView(this);
+        TextView view = new TextView(this);
 
-        t.setText(value);
-        t.setTextSize(size);
-        t.setTextColor(Color.rgb(25, 25, 25));
-        t.setPadding(20, 15, 20, 15);
+        view.setText(text);
+        view.setTextSize(size);
+        view.setTextColor(Color.rgb(30, 30, 30));
 
-        return t;
+        if (bold) {
+            view.setTypeface(
+                    Typeface.DEFAULT,
+                    Typeface.BOLD
+            );
+        }
+
+        view.setPadding(10, 10, 10, 10);
+
+        return view;
     }
 
-    private Button button(String value) {
+    private Button createButton(String text) {
 
-        Button b = new Button(this);
+        Button button = new Button(this);
 
-        b.setText(value);
-        b.setTextSize(16);
+        button.setText(text);
+        button.setTextSize(16);
+        button.setAllCaps(false);
 
-        return b;
+        return button;
     }
 
-    private void createInterface() {
+    private void createScreen() {
 
-        ScrollView scroll = new ScrollView(this);
+        ScrollView scrollView = new ScrollView(this);
 
         LinearLayout main = new LinearLayout(this);
 
-        main.setOrientation(LinearLayout.VERTICAL);
-        main.setPadding(25, 25, 25, 30);
+        main.setOrientation(
+                LinearLayout.VERTICAL
+        );
 
-        scroll.addView(main);
+        main.setPadding(
+                24,
+                25,
+                24,
+                30
+        );
 
-        TextView title = text("🚭 QUIT SMOKING", 30);
+        main.setBackgroundColor(
+                Color.rgb(248, 252, 248)
+        );
+
+        scrollView.addView(main);
+
+        // LOGO
+
+        TextView logo = createText(
+                "🚭",
+                55,
+                false
+        );
+
+        logo.setGravity(Gravity.CENTER);
+
+        main.addView(logo);
+
+        // TITLE
+
+        TextView title = createText(
+                "QUIT SMOKING",
+                30,
+                true
+        );
+
+        title.setTextColor(
+                Color.rgb(25, 140, 75)
+        );
+
         title.setGravity(Gravity.CENTER);
 
         main.addView(title);
 
-        TextView creator = text(
+        // CREATOR
+
+        TextView creator = createText(
                 "Created by JABORZODA FAYZALI",
-                15
+                14,
+                false
         );
 
         creator.setGravity(Gravity.CENTER);
 
         main.addView(creator);
 
-        main.addView(text(
-                "\nТВОЙ ПУТЬ К ЖИЗНИ БЕЗ СИГАРЕТ\n",
-                20
+        main.addView(createText(
+                "\nТвой путь к жизни без сигарет",
+                20,
+                true
         ));
 
-        timerText = text("", 24);
-        main.addView(timerText);
+        // TIMER
 
-        cigarettesText = text("", 19);
-        main.addView(cigarettesText);
+        timer = createText(
+                "",
+                22,
+                true
+        );
 
-        moneyText = text("", 19);
-        main.addView(moneyText);
+        timer.setGravity(Gravity.CENTER);
 
-        Button motivation = button(
+        main.addView(timer);
+
+        // STATS
+
+        cigarettes = createText(
+                "",
+                18,
+                false
+        );
+
+        main.addView(cigarettes);
+
+        money = createText(
+                "",
+                18,
+                false
+        );
+
+        main.addView(money);
+
+        // MOTIVATION
+
+        Button motivation = createButton(
                 "🔥 Мне хочется закурить"
         );
 
-        motivation.setOnClickListener(v -> showMotivation());
+        motivation.setOnClickListener(
+                v -> showMotivation()
+        );
 
         main.addView(motivation);
 
-        Button health = button(
-                "❤️ Что происходит с организмом"
+        // HEALTH
+
+        Button health = createButton(
+                "❤️ Моё здоровье"
         );
 
-        health.setOnClickListener(v -> showHealth());
+        health.setOnClickListener(
+                v -> showHealth()
+        );
 
         main.addView(health);
 
-        Button achievements = button(
-                "🏆 Мои достижения"
+        // ACHIEVEMENTS
+
+        Button achievements = createButton(
+                "🏆 Достижения"
         );
 
-        achievements.setOnClickListener(v -> showAchievements());
+        achievements.setOnClickListener(
+                v -> showAchievements()
+        );
 
         main.addView(achievements);
 
-        Button statistics = button(
+        // STATISTICS
+
+        Button statistics = createButton(
                 "📊 Статистика"
         );
 
-        statistics.setOnClickListener(v -> showStatistics());
+        statistics.setOnClickListener(
+                v -> showStatistics()
+        );
 
         main.addView(statistics);
 
-        Button relapse = button(
+        // RESET
+
+        Button reset = createButton(
                 "🔄 Я сорвался"
         );
 
-        relapse.setOnClickListener(v -> resetTimer());
+        reset.setOnClickListener(
+                v -> resetTimer()
+        );
 
-        main.addView(relapse);
+        main.addView(reset);
 
-        main.addView(text(
-                "\nПомни: один срыв не означает поражение.\n" +
-                "Продолжай путь. 🚭\n\n" +
+        // FOOTER
+
+        TextView footer = createText(
+                "\nКаждый день без сигарет — это победа. 💚\n\n" +
                 "JABORZODA FAYZALI",
-                16
-        ));
+                15,
+                true
+        );
 
-        setContentView(scroll);
+        footer.setGravity(Gravity.CENTER);
 
-        updateStats();
+        main.addView(footer);
+
+        setContentView(scrollView);
     }
 
-    private void updateStats() {
+    private void updateScreen() {
 
-        long now = System.currentTimeMillis();
+        long difference =
+                System.currentTimeMillis() - startTime;
 
-        long difference = now - startTime;
+        long totalSeconds =
+                difference / 1000;
 
-        long totalSeconds = difference / 1000;
+        long days =
+                totalSeconds / 86400;
 
-        long days = totalSeconds / 86400;
+        long hours =
+                (totalSeconds % 86400) / 3600;
 
-        long hours = (totalSeconds % 86400) / 3600;
+        long minutes =
+                (totalSeconds % 3600) / 60;
 
-        long minutes = (totalSeconds % 3600) / 60;
+        long seconds =
+                totalSeconds % 60;
 
-        long seconds = totalSeconds % 60;
-
-        timerText.setText(
-                "⏱ Без сигарет:\n" +
+        timer.setText(
+                "⏱ " +
                 days + " дн. " +
                 hours + " ч. " +
                 minutes + " мин. " +
                 seconds + " сек."
         );
 
+        int cigarettesPerDay =
+                prefs.getInt(
+                        "cigarettes_per_day",
+                        10
+                );
+
+        float pricePerCigarette =
+                prefs.getFloat(
+                        "price_per_cigarette",
+                        50
+                );
+
         long cigarettesAvoided =
-                (days * cigarettesPerDay) +
-                (hours * cigarettesPerDay / 24);
+                days * cigarettesPerDay;
 
-        float moneySaved =
-                cigarettesAvoided * pricePerCigarette;
+        float saved =
+                cigarettesAvoided *
+                pricePerCigarette;
 
-        cigarettesText.setText(
-                "🚬 Не выкурено примерно: " +
-                cigarettesAvoided
+        cigarettes.setText(
+                "🚬 Не выкурено: " +
+                cigarettesAvoided +
+                " сигарет"
         );
 
-        moneyText.setText(
+        money.setText(
                 String.format(
                         Locale.getDefault(),
                         "💰 Сэкономлено: %.0f",
-                        moneySaved
+                        saved
                 )
         );
     }
@@ -209,95 +330,112 @@ public class MainActivity extends Activity {
     private void showMotivation() {
 
         new android.app.AlertDialog.Builder(this)
-                .setTitle("🔥 Сильная тяга?")
+                .setTitle("🔥 Не закуривай сейчас")
                 .setMessage(
-                        "Подожди 5 минут.\n\n" +
-                        "Сделай несколько глубоких вдохов.\n" +
-                        "Выпей воды.\n" +
-                        "Выйди на улицу или пройдись.\n\n" +
-                        "Тяга обычно проходит. " +
-                        "Тебе не нужна эта сигарета. 🚭"
+                        "Подожди всего несколько минут.\n\n" +
+                        "💧 Выпей воды.\n" +
+                        "🌬 Сделай несколько глубоких вдохов.\n" +
+                        "🚶 Пройдись.\n" +
+                        "📱 Займись чем-нибудь другим.\n\n" +
+                        "Ты уже начал свой путь. " +
+                        "Не отдавай его одной сигарете. 💪"
                 )
-                .setPositiveButton("Я справлюсь 💪", null)
+                .setPositiveButton(
+                        "Я справлюсь!",
+                        null
+                )
                 .show();
     }
 
     private void showHealth() {
 
         new android.app.AlertDialog.Builder(this)
-                .setTitle("❤️ Восстановление организма")
+                .setTitle("❤️ Восстановление")
                 .setMessage(
                         "После отказа от курения организм " +
-                        "начинает восстанавливаться.\n\n" +
-
-                        "⏱ Первые часы — уровень никотина " +
-                        "начинает снижаться.\n\n" +
-
-                        "📅 Дни — постепенно улучшается " +
-                        "работа организма.\n\n" +
-
-                        "🫁 Недели и месяцы — организм " +
-                        "продолжает восстанавливаться.\n\n" +
-
-                        "Каждый день без сигарет имеет значение."
+                        "постепенно восстанавливается.\n\n" +
+                        "🫁 Лёгкие получают возможность " +
+                        "очищаться.\n\n" +
+                        "❤️ Сердечно-сосудистая система " +
+                        "постепенно получает преимущества.\n\n" +
+                        "🌿 Чем дольше ты не куришь, " +
+                        "тем больше пользы для здоровья."
                 )
-                .setPositiveButton("Понятно", null)
+                .setPositiveButton(
+                        "Продолжить",
+                        null
+                )
                 .show();
     }
 
     private void showAchievements() {
 
-        long difference =
-                System.currentTimeMillis() - startTime;
+        long days =
+                (System.currentTimeMillis() -
+                        startTime) / 86400000;
 
-        long days = difference / 86400000;
+        String result;
 
-        String achievement;
-
-        if (days >= 30) {
-            achievement =
-                    "🏆 30 дней — невероятный результат!\n\n" +
-                    "Ты уже прошёл огромный путь.";
+        if (days >= 90) {
+            result =
+                    "💎 90 дней!\n\n" +
+                    "Ты достиг огромного результата.";
+        } else if (days >= 30) {
+            result =
+                    "🏆 30 дней!\n\n" +
+                    "Месяц без сигарет!";
+        } else if (days >= 14) {
+            result =
+                    "🥇 14 дней!\n\n" +
+                    "Две недели — отлично!";
         } else if (days >= 7) {
-            achievement =
-                    "🥇 7 дней — целая неделя без сигарет!";
+            result =
+                    "🥇 7 дней!\n\n" +
+                    "Целая неделя!";
         } else if (days >= 3) {
-            achievement =
-                    "🥉 3 дня — отличный старт!";
+            result =
+                    "🥉 3 дня!\n\n" +
+                    "Ты уже сделал серьёзный шаг.";
         } else if (days >= 1) {
-            achievement =
-                    "⭐ 1 день — ты уже начал!";
+            result =
+                    "⭐ 1 день!\n\n" +
+                    "Первая победа!";
         } else {
-            achievement =
-                    "🚭 Твоя первая цель — продержаться сегодня.";
+            result =
+                    "🚭 Начало пути!\n\n" +
+                    "Твоя первая цель — прожить " +
+                    "сегодня без сигарет.";
         }
 
         new android.app.AlertDialog.Builder(this)
                 .setTitle("🏆 Достижения")
-                .setMessage(achievement)
-                .setPositiveButton("Продолжить", null)
+                .setMessage(result)
+                .setPositiveButton(
+                        "Продолжить",
+                        null
+                )
                 .show();
     }
 
     private void showStatistics() {
 
-        long difference =
-                System.currentTimeMillis() - startTime;
-
-        long days = difference / 86400000;
+        long days =
+                (System.currentTimeMillis() -
+                        startTime) / 86400000;
 
         new android.app.AlertDialog.Builder(this)
                 .setTitle("📊 Статистика")
                 .setMessage(
                         "🚭 Дней без сигарет: " +
                         days + "\n\n" +
-
-                        "🎯 Цель: жить без никотина\n\n" +
-
-                        "🔥 Главное достижение — " +
-                        "ты продолжаешь бороться."
+                        "🔥 Продолжай двигаться вперёд!\n\n" +
+                        "Создатель:\n" +
+                        "JABORZODA FAYZALI"
                 )
-                .setPositiveButton("Назад", null)
+                .setPositiveButton(
+                        "OK",
+                        null
+                )
                 .show();
     }
 
@@ -305,17 +443,14 @@ public class MainActivity extends Activity {
 
         new android.app.AlertDialog.Builder(this)
                 .setTitle("🔄 Срыв")
-
                 .setMessage(
                         "Срыв — это не конец пути.\n\n" +
-                        "Начнём счётчик заново?"
+                        "Начать счётчик заново?"
                 )
-
                 .setNegativeButton(
                         "Нет",
                         null
                 )
-
                 .setPositiveButton(
                         "Начать заново",
                         (dialog, which) -> {
@@ -330,10 +465,23 @@ public class MainActivity extends Activity {
                                     )
                                     .apply();
 
-                            updateStats();
+                            updateScreen();
                         }
                 )
-
                 .show();
     }
-          }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        handler.post(timerRunnable);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        handler.removeCallbacks(timerRunnable);
+    }
+}
