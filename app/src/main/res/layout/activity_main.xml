@@ -22,6 +22,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:gravity="center"
             android:text="JABORZODA"
             android:textColor="#2D8F58"
@@ -32,7 +33,7 @@
             android:layout_width="match_parent"
             android:layout_height="240dp"
             android:layout_marginTop="15dp"
-            android:contentDescription="Lungs"
+            android:contentDescription="Healthy lungs"
             android:src="@drawable/quit_smoking_banner" />
 
         <TextView
@@ -57,4 +58,13 @@
 
         <TextView
             android:id="@+id/tvCigarettes"
-            android:layout_width="match_parent
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:text="🚬 Не выкурено: 0 сигарет"
+            android:textSize="18sp" />
+
+    </LinearLayout>
+
+</ScrollView>
