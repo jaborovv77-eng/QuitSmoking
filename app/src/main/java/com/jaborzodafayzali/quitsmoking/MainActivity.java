@@ -7,10 +7,10 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.util.Locale;
@@ -18,19 +18,16 @@ import java.util.Locale;
 public class MainActivity extends Activity {
 
     private SharedPreferences prefs;
-
-    private TextView timer;
-    private TextView cigarettes;
-    private TextView money;
-
-    private long startTime;
-
-    private final Handler handler = new Handler();
+    private Handler handler = new Handler();
+    private TextView timerText;
+    private TextView cigarettesText;
+    private TextView moneyText;
+    private boolean tajik = false;
 
     private final Runnable timerRunnable = new Runnable() {
         @Override
         public void run() {
-            updateScreen();
+            updateTimer();
             handler.postDelayed(this, 1000);
         }
     };
@@ -39,548 +36,287 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        prefs = getSharedPreferences(
-                "quit_smoking",
-                MODE_PRIVATE
-        );
+        prefs = getSharedPreferences("quit_smoking", MODE_PRIVATE);
 
-        startTime = prefs.getLong(
-                "start_time",
-                0
-        );
+        tajik = prefs.getBoolean("tajik", false);
 
-        if (startTime == 0) {
-            startTime = System.currentTimeMillis();
-
-            prefs.edit()
-                    .putLong("start_time", startTime)
-                    .apply();
+        if (!prefs.contains("start_time")) {
+            prefs.edit().putLong("start_time", System.currentTimeMillis()).apply();
         }
 
         createScreen();
-        updateScreen();
+        handler.post(timerRunnable);
     }
 
-    private TextView createText(
-            String text,
-            int size,
-            boolean bold
-    ) {
-
-        TextView view = new TextView(this);
-
-        view.setText(text);
-        view.setTextSize(size);
-        view.setTextColor(
-                Color.rgb(30, 30, 30)
-        );
-
-        if (bold) {
-            view.setTypeface(
-                    Typeface.DEFAULT,
-                    Typeface.BOLD
-            );
-        }
-
-        view.setPadding(
-                10,
-                10,
-                10,
-                10
-        );
-
-        return view;
-    }
-
-    private Button createButton(String text) {
-
-        Button button = new Button(this);
-
-        button.setText(text);
-        button.setTextSize(16);
-        button.setAllCaps(false);
-
-        return button;
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        handler.removeCallbacks(timerRunnable);
     }
 
     private void createScreen() {
 
-        ScrollView scrollView =
-                new ScrollView(this);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(30, 25, 30, 25);
+        root.setGravity(Gravity.CENTER_HORIZONTAL);
+        root.setBackgroundColor(Color.WHITE);
 
-        LinearLayout main =
-                new LinearLayout(this);
+        TextView logo = new TextView(this);
+        logo.setText("🚭");
+        logo.setTextSize(55);
+        logo.setGravity(Gravity.CENTER);
 
-        main.setOrientation(
-                LinearLayout.VERTICAL
+        root.addView(logo);
+
+        TextView title = new TextView(this);
+        title.setText(tajik ? "ТАРКИ СИГОР" : "QUIT SMOKING");
+        title.setTextSize(28);
+        title.setTypeface(null, Typeface.BOLD);
+        title.setTextColor(Color.rgb(35, 125, 75));
+        title.setGravity(Gravity.CENTER);
+
+        root.addView(title);
+
+        TextView creator = new TextView(this);
+        creator.setText("JABORZODA");
+        creator.setTextSize(12);
+        creator.setTypeface(null, Typeface.BOLD);
+        creator.setTextColor(Color.rgb(45, 143, 88));
+        creator.setGravity(Gravity.CENTER);
+
+        root.addView(creator);
+
+        TextView subtitle = new TextView(this);
+        subtitle.setText(
+                tajik
+                        ? "Роҳи ту ба сӯи ҳаёти бе сигор"
+                        : "Твой путь к жизни без сигарет"
         );
+        subtitle.setTextSize(16);
+        subtitle.setTextColor(Color.DKGRAY);
+        subtitle.setGravity(Gravity.CENTER);
+        subtitle.setPadding(0, 10, 0, 15);
 
-        main.setPadding(
-                24,
-                25,
-                24,
-                30
-        );
+        root.addView(subtitle);
 
-        main.setBackgroundColor(
-                Color.rgb(248, 252, 248)
-        );
-
-        scrollView.addView(main);
-
-        // LOGO
-
-        TextView logo = createText(
-                "🚭",
-                45,
-                false
-        );
-
-        logo.setGravity(
-                Gravity.CENTER
-        );
-
-        main.addView(logo);
-
-        // TITLE
-
-        TextView title = createText(
-                "QUIT SMOKING",
-                28,
-                true
-        );
-
-        title.setTextColor(
-                Color.rgb(25, 140, 75)
-        );
-
-        title.setGravity(
-                Gravity.CENTER
-        );
-
-        main.addView(title);
-
-        // LUNGS BANNER
-
-        ImageView lungs =
-                new ImageView(this);
-
+        ImageView lungs = new ImageView(this);
         lungs.setImageResource(
                 com.jaborzodafayzali.quitsmoking.R.drawable.quit_smoking_banner
         );
+        lungs.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
 
-        lungs.setAdjustViewBounds(true);
-
-        LinearLayout.LayoutParams lungsParams =
+        LinearLayout.LayoutParams imageParams =
                 new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         240
                 );
 
-        lungsParams.setMargins(
-                0,
-                15,
-                0,
-                10
+        root.addView(lungs, imageParams);
+
+        timerText = new TextView(this);
+        timerText.setTextSize(22);
+        timerText.setTypeface(null, Typeface.BOLD);
+        timerText.setTextColor(Color.rgb(30, 100, 60));
+        timerText.setGravity(Gravity.CENTER);
+        timerText.setPadding(0, 15, 0, 15);
+
+        root.addView(timerText);
+
+        cigarettesText = new TextView(this);
+        cigarettesText.setTextSize(18);
+        cigarettesText.setGravity(Gravity.CENTER);
+        cigarettesText.setPadding(0, 8, 0, 8);
+
+        root.addView(cigarettesText);
+
+        moneyText = new TextView(this);
+        moneyText.setTextSize(18);
+        moneyText.setGravity(Gravity.CENTER);
+        moneyText.setPadding(0, 8, 0, 15);
+
+        root.addView(moneyText);
+
+        Button languageButton = new Button(this);
+        languageButton.setText(
+                tajik ? "🇷🇺 Русский" : "🇹🇯 Тоҷикӣ"
         );
 
-        main.addView(
-                lungs,
-                lungsParams
+        languageButton.setOnClickListener(v -> {
+            tajik = !tajik;
+            prefs.edit().putBoolean("tajik", tajik).apply();
+            createScreen();
+        });
+
+        root.addView(languageButton);
+
+        Button cravingButton = new Button(this);
+        cravingButton.setText(
+                tajik
+                        ? "🔥 Ман мехоҳам сигор кашам"
+                        : "🔥 Мне хочется закурить"
         );
 
-        // CREATOR
+        cravingButton.setOnClickListener(v -> showMotivation());
 
-        TextView creator = createText(
-                "JABORZODA",
-                12,
-                true
+        root.addView(cravingButton);
+
+        Button healthButton = new Button(this);
+        healthButton.setText(
+                tajik
+                        ? "❤️ Саломатии ман"
+                        : "❤️ Моё здоровье"
         );
 
-        creator.setTextColor(
-                Color.rgb(45, 143, 88)
+        healthButton.setOnClickListener(v -> showHealth());
+
+        root.addView(healthButton);
+
+        Button achievementsButton = new Button(this);
+        achievementsButton.setText(
+                tajik
+                        ? "🏆 Дастовардҳо"
+                        : "🏆 Достижения"
         );
 
-        creator.setGravity(
-                Gravity.CENTER
+        achievementsButton.setOnClickListener(v -> showAchievements());
+
+        root.addView(achievementsButton);
+
+        Button statisticsButton = new Button(this);
+        statisticsButton.setText(
+                tajik
+                        ? "📊 Омор"
+                        : "📊 Статистика"
         );
 
-        main.addView(creator);
+        statisticsButton.setOnClickListener(v -> showStatistics());
 
-        main.addView(createText(
-                "\nТвой путь к жизни без сигарет",
-                20,
-                true
-        ));
+        root.addView(statisticsButton);
 
-        // TIMER
-
-        timer = createText(
-                "",
-                22,
-                true
+        Button resetButton = new Button(this);
+        resetButton.setText(
+                tajik
+                        ? "🔄 Ман дубора сигор кашидам"
+                        : "🔄 Я сорвался"
         );
 
-        timer.setGravity(
-                Gravity.CENTER
+        resetButton.setOnClickListener(v -> resetTimer());
+
+        root.addView(resetButton);
+
+        TextView footer = new TextView(this);
+        footer.setText(
+                tajik
+                        ? "Ҳар рӯзи бе сигор — як пирӯзӣ. 💚"
+                        : "Каждый день без сигарет — это победа. 💚"
         );
+        footer.setTextSize(14);
+        footer.setTextColor(Color.GRAY);
+        footer.setGravity(Gravity.CENTER);
+        footer.setPadding(0, 20, 0, 10);
 
-        main.addView(timer);
+        root.addView(footer);
 
-        // CIGARETTES
-
-        cigarettes = createText(
-                "",
-                18,
-                false
-        );
-
-        cigarettes.setGravity(
-                Gravity.CENTER
-        );
-
-        main.addView(cigarettes);
-
-        // MONEY
-
-        money = createText(
-                "",
-                18,
-                false
-        );
-
-        money.setGravity(
-                Gravity.CENTER
-        );
-
-        main.addView(money);
-
-        // MOTIVATION
-
-        Button motivation = createButton(
-                "🔥 Мне хочется закурить"
-        );
-
-        motivation.setOnClickListener(
-                v -> showMotivation()
-        );
-
-        main.addView(motivation);
-
-        // HEALTH
-
-        Button health = createButton(
-                "❤️ Моё здоровье"
-        );
-
-        health.setOnClickListener(
-                v -> showHealth()
-        );
-
-        main.addView(health);
-
-        // ACHIEVEMENTS
-
-        Button achievements = createButton(
-                "🏆 Достижения"
-        );
-
-        achievements.setOnClickListener(
-                v -> showAchievements()
-        );
-
-        main.addView(achievements);
-
-        // STATISTICS
-
-        Button statistics = createButton(
-                "📊 Статистика"
-        );
-
-        statistics.setOnClickListener(
-                v -> showStatistics()
-        );
-
-        main.addView(statistics);
-
-        // RESET
-
-        Button reset = createButton(
-                "🔄 Я сорвался"
-        );
-
-        reset.setOnClickListener(
-                v -> resetTimer()
-        );
-
-        main.addView(reset);
-
-        // FOOTER
-
-        TextView footer = createText(
-                "\nКаждый день без сигарет — это победа. 💚\n\n" +
-                "JABORZODA FAYZALI",
-                15,
-                true
-        );
-
-        footer.setGravity(
-                Gravity.CENTER
-        );
-
-        main.addView(footer);
-
-        setContentView(scrollView);
+        setContentView(root);
+        updateTimer();
     }
 
-    private void updateScreen() {
+    private void updateTimer() {
+
+        long startTime = prefs.getLong(
+                "start_time",
+                System.currentTimeMillis()
+        );
 
         long difference =
-                System.currentTimeMillis()
-                        - startTime;
+                System.currentTimeMillis() - startTime;
 
-        long totalSeconds =
-                difference / 1000;
+        long seconds = difference / 1000;
 
-        long days =
-                totalSeconds / 86400;
+        long days = seconds / 86400;
+        seconds %= 86400;
 
-        long hours =
-                (totalSeconds % 86400) / 3600;
+        long hours = seconds / 3600;
+        seconds %= 3600;
 
-        long minutes =
-                (totalSeconds % 3600) / 60;
+        long minutes = seconds / 60;
+        seconds %= 60;
 
-        long seconds =
-                totalSeconds % 60;
+        String time;
 
-        timer.setText(
-                "⏱ " +
-                days + " дн. " +
-                hours + " ч. " +
-                minutes + " мин. " +
-                seconds + " сек."
-        );
+        if (tajik) {
+            time = String.format(
+                    Locale.getDefault(),
+                    "⏱ Вақти бе сигор:\n%d рӯз %02d:%02d:%02d",
+                    days,
+                    hours,
+                    minutes,
+                    seconds
+            );
+        } else {
+            time = String.format(
+                    Locale.getDefault(),
+                    "⏱ Время без сигарет:\n%d дней %02d:%02d:%02d",
+                    days,
+                    hours,
+                    minutes,
+                    seconds
+            );
+        }
 
-        int cigarettesPerDay =
-                prefs.getInt(
-                        "cigarettes_per_day",
-                        10
-                );
+        if (timerText != null) {
+            timerText.setText(time);
+        }
 
-        float pricePerCigarette =
-                prefs.getFloat(
-                        "price_per_cigarette",
-                        50
-                );
+        long cigarettesPerDay = 10;
+
+        long totalMinutes =
+                difference / 60000;
 
         long cigarettesAvoided =
-                days * cigarettesPerDay;
+                (totalMinutes * cigarettesPerDay) / 1440;
 
-        float saved =
-                cigarettesAvoided
-                        * pricePerCigarette;
+        if (cigarettesText != null) {
 
-        cigarettes.setText(
-                "🚬 Не выкурено: " +
-                cigarettesAvoided +
-                " сигарет"
-        );
+            cigarettesText.setText(
+                    tajik
+                            ? "🚬 Сигорҳои накашида: "
+                            + cigarettesAvoided
+                            : "🚬 Сигарет не выкурено: "
+                            + cigarettesAvoided
+            );
+        }
 
-        money.setText(
-                String.format(
-                        Locale.getDefault(),
-                        "💰 Сэкономлено: %.0f ₸",
-                        saved
-                )
-        );
+        double pricePerCigarette = 50;
+
+        double saved =
+                cigarettesAvoided * pricePerCigarette;
+
+        if (moneyText != null) {
+
+            moneyText.setText(
+                    tajik
+                            ? String.format(
+                            Locale.getDefault(),
+                            "💰 Пули сарфашуда: %.0f ₸",
+                            saved
+                    )
+                            : String.format(
+                            Locale.getDefault(),
+                            "💰 Сэкономлено: %.0f ₸",
+                            saved
+                    )
+            );
+        }
     }
 
     private void showMotivation() {
 
-        new android.app.AlertDialog.Builder(this)
-                .setTitle(
-                        "🔥 Не закуривай сейчас"
-                )
-                .setMessage(
-                        "Подожди всего несколько минут.\n\n" +
-                        "💧 Выпей воды.\n" +
-                        "🌬 Сделай несколько глубоких вдохов.\n" +
-                        "🚶 Пройдись.\n" +
-                        "📱 Займись чем-нибудь другим.\n\n" +
-                        "Ты уже начал свой путь. " +
-                        "Не отдавай его одной сигарете. 💪"
-                )
-                .setPositiveButton(
-                        "Я справлюсь!",
-                        null
-                )
-                .show();
-    }
+        String title = tajik
+                ? "🔥 Ҳозир сигор накаш"
+                : "🔥 Не кури сейчас";
 
-    private void showHealth() {
-
-        new android.app.AlertDialog.Builder(this)
-                .setTitle(
-                        "❤️ Восстановление"
-                )
-                .setMessage(
-                        "После отказа от курения организм " +
-                        "постепенно восстанавливается.\n\n" +
-                        "🫁 Лёгкие получают возможность " +
-                        "очищаться.\n\n" +
-                        "❤️ Сердечно-сосудистая система " +
-                        "постепенно получает преимущества.\n\n" +
-                        "🌿 Чем дольше ты не куришь, " +
-                        "тем больше пользы для здоровья."
-                )
-                .setPositiveButton(
-                        "Продолжить",
-                        null
-                )
-                .show();
-    }
-
-    private void showAchievements() {
-
-        long days =
-                (System.currentTimeMillis()
-                        - startTime)
-                        / 86400000;
-
-        String result;
-
-        if (days >= 90) {
-
-            result =
-                    "💎 90 дней!\n\n" +
-                    "Ты достиг огромного результата.";
-
-        } else if (days >= 30) {
-
-            result =
-                    "🏆 30 дней!\n\n" +
-                    "Месяц без сигарет!";
-
-        } else if (days >= 14) {
-
-            result =
-                    "🥇 14 дней!\n\n" +
-                    "Две недели — отлично!";
-
-        } else if (days >= 7) {
-
-            result =
-                    "🥇 7 дней!\n\n" +
-                    "Целая неделя!";
-
-        } else if (days >= 3) {
-
-            result =
-                    "🥉 3 дня!\n\n" +
-                    "Ты уже сделал серьёзный шаг.";
-
-        } else if (days >= 1) {
-
-            result =
-                    "⭐ 1 день!\n\n" +
-                    "Первая победа!";
-
-        } else {
-
-            result =
-                    "🚭 Начало пути!\n\n" +
-                    "Твоя первая цель — прожить " +
-                    "сегодня без сигарет.";
-        }
-
-        new android.app.AlertDialog.Builder(this)
-                .setTitle(
-                        "🏆 Достижения"
-                )
-                .setMessage(result)
-                .setPositiveButton(
-                        "Продолжить",
-                        null
-                )
-                .show();
-    }
-
-    private void showStatistics() {
-
-        long days =
-                (System.currentTimeMillis()
-                        - startTime)
-                        / 86400000;
-
-        new android.app.AlertDialog.Builder(this)
-                .setTitle(
-                        "📊 Статистика"
-                )
-                .setMessage(
-                        "🚭 Дней без сигарет: " +
-                        days +
-                        "\n\n" +
-                        "🔥 Продолжай двигаться вперёд!\n\n" +
-                        "Создатель:\n" +
-                        "JABORZODA FAYZALI"
-                )
-                .setPositiveButton(
-                        "OK",
-                        null
-                )
-                .show();
-    }
-
-    private void resetTimer() {
-
-        new android.app.AlertDialog.Builder(this)
-                .setTitle(
-                        "🔄 Срыв"
-                )
-                .setMessage(
-                        "Срыв — это не конец пути.\n\n" +
-                        "Начать счётчик заново?"
-                )
-                .setNegativeButton(
-                        "Нет",
-                        null
-                )
-                .setPositiveButton(
-                        "Начать заново",
-                        (dialog, which) -> {
-
-                            startTime =
-                                    System.currentTimeMillis();
-
-                            prefs.edit()
-                                    .putLong(
-                                            "start_time",
-                                            startTime
-                                    )
-                                    .apply();
-
-                            updateScreen();
-                        }
-                )
-                .show();
-    }
-
-    @Override
-    protected void onResume() {
-
-        super.onResume();
-
-        handler.post(timerRunnable);
-    }
-
-    @Override
-    protected void onPause() {
-
-        super.onPause();
-
-        handler.removeCallbacks(
-                timerRunnable
-        );
-    }
-}
+        String message = tajik
+                ? "Ту то имрӯз тоқат кардӣ. Як сигор ҳамаи заҳмататро арзишманд намекунад. Якчанд дақиқа сабр кун — хоҳиш мегузарад. 💪"
+                : "Ты уже столько продержался.
