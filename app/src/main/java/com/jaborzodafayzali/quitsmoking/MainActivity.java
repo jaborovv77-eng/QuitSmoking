@@ -7,8 +7,8 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.view.Gravity;
-import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -39,9 +39,15 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        prefs = getSharedPreferences("quit_smoking", MODE_PRIVATE);
+        prefs = getSharedPreferences(
+                "quit_smoking",
+                MODE_PRIVATE
+        );
 
-        startTime = prefs.getLong("start_time", 0);
+        startTime = prefs.getLong(
+                "start_time",
+                0
+        );
 
         if (startTime == 0) {
             startTime = System.currentTimeMillis();
@@ -65,7 +71,9 @@ public class MainActivity extends Activity {
 
         view.setText(text);
         view.setTextSize(size);
-        view.setTextColor(Color.rgb(30, 30, 30));
+        view.setTextColor(
+                Color.rgb(30, 30, 30)
+        );
 
         if (bold) {
             view.setTypeface(
@@ -74,7 +82,12 @@ public class MainActivity extends Activity {
             );
         }
 
-        view.setPadding(10, 10, 10, 10);
+        view.setPadding(
+                10,
+                10,
+                10,
+                10
+        );
 
         return view;
     }
@@ -92,9 +105,11 @@ public class MainActivity extends Activity {
 
     private void createScreen() {
 
-        ScrollView scrollView = new ScrollView(this);
+        ScrollView scrollView =
+                new ScrollView(this);
 
-        LinearLayout main = new LinearLayout(this);
+        LinearLayout main =
+                new LinearLayout(this);
 
         main.setOrientation(
                 LinearLayout.VERTICAL
@@ -117,11 +132,13 @@ public class MainActivity extends Activity {
 
         TextView logo = createText(
                 "🚭",
-                55,
+                45,
                 false
         );
 
-        logo.setGravity(Gravity.CENTER);
+        logo.setGravity(
+                Gravity.CENTER
+        );
 
         main.addView(logo);
 
@@ -129,7 +146,7 @@ public class MainActivity extends Activity {
 
         TextView title = createText(
                 "QUIT SMOKING",
-                30,
+                28,
                 true
         );
 
@@ -137,19 +154,56 @@ public class MainActivity extends Activity {
                 Color.rgb(25, 140, 75)
         );
 
-        title.setGravity(Gravity.CENTER);
+        title.setGravity(
+                Gravity.CENTER
+        );
 
         main.addView(title);
+
+        // LUNGS BANNER
+
+        ImageView lungs =
+                new ImageView(this);
+
+        lungs.setImageResource(
+                com.jaborzodafayzali.quitsmoking.R.drawable.quit_smoking_banner
+        );
+
+        lungs.setAdjustViewBounds(true);
+
+        LinearLayout.LayoutParams lungsParams =
+                new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        240
+                );
+
+        lungsParams.setMargins(
+                0,
+                15,
+                0,
+                10
+        );
+
+        main.addView(
+                lungs,
+                lungsParams
+        );
 
         // CREATOR
 
         TextView creator = createText(
-                "Created by JABORZODA FAYZALI",
-                14,
-                false
+                "JABORZODA",
+                12,
+                true
         );
 
-        creator.setGravity(Gravity.CENTER);
+        creator.setTextColor(
+                Color.rgb(45, 143, 88)
+        );
+
+        creator.setGravity(
+                Gravity.CENTER
+        );
 
         main.addView(creator);
 
@@ -167,11 +221,13 @@ public class MainActivity extends Activity {
                 true
         );
 
-        timer.setGravity(Gravity.CENTER);
+        timer.setGravity(
+                Gravity.CENTER
+        );
 
         main.addView(timer);
 
-        // STATS
+        // CIGARETTES
 
         cigarettes = createText(
                 "",
@@ -179,12 +235,22 @@ public class MainActivity extends Activity {
                 false
         );
 
+        cigarettes.setGravity(
+                Gravity.CENTER
+        );
+
         main.addView(cigarettes);
+
+        // MONEY
 
         money = createText(
                 "",
                 18,
                 false
+        );
+
+        money.setGravity(
+                Gravity.CENTER
         );
 
         main.addView(money);
@@ -258,7 +324,9 @@ public class MainActivity extends Activity {
                 true
         );
 
-        footer.setGravity(Gravity.CENTER);
+        footer.setGravity(
+                Gravity.CENTER
+        );
 
         main.addView(footer);
 
@@ -268,7 +336,8 @@ public class MainActivity extends Activity {
     private void updateScreen() {
 
         long difference =
-                System.currentTimeMillis() - startTime;
+                System.currentTimeMillis()
+                        - startTime;
 
         long totalSeconds =
                 difference / 1000;
@@ -309,8 +378,8 @@ public class MainActivity extends Activity {
                 days * cigarettesPerDay;
 
         float saved =
-                cigarettesAvoided *
-                pricePerCigarette;
+                cigarettesAvoided
+                        * pricePerCigarette;
 
         cigarettes.setText(
                 "🚬 Не выкурено: " +
@@ -321,7 +390,7 @@ public class MainActivity extends Activity {
         money.setText(
                 String.format(
                         Locale.getDefault(),
-                        "💰 Сэкономлено: %.0f",
+                        "💰 Сэкономлено: %.0f ₸",
                         saved
                 )
         );
@@ -330,7 +399,9 @@ public class MainActivity extends Activity {
     private void showMotivation() {
 
         new android.app.AlertDialog.Builder(this)
-                .setTitle("🔥 Не закуривай сейчас")
+                .setTitle(
+                        "🔥 Не закуривай сейчас"
+                )
                 .setMessage(
                         "Подожди всего несколько минут.\n\n" +
                         "💧 Выпей воды.\n" +
@@ -350,7 +421,9 @@ public class MainActivity extends Activity {
     private void showHealth() {
 
         new android.app.AlertDialog.Builder(this)
-                .setTitle("❤️ Восстановление")
+                .setTitle(
+                        "❤️ Восстановление"
+                )
                 .setMessage(
                         "После отказа от курения организм " +
                         "постепенно восстанавливается.\n\n" +
@@ -371,36 +444,50 @@ public class MainActivity extends Activity {
     private void showAchievements() {
 
         long days =
-                (System.currentTimeMillis() -
-                        startTime) / 86400000;
+                (System.currentTimeMillis()
+                        - startTime)
+                        / 86400000;
 
         String result;
 
         if (days >= 90) {
+
             result =
                     "💎 90 дней!\n\n" +
                     "Ты достиг огромного результата.";
+
         } else if (days >= 30) {
+
             result =
                     "🏆 30 дней!\n\n" +
                     "Месяц без сигарет!";
+
         } else if (days >= 14) {
+
             result =
                     "🥇 14 дней!\n\n" +
                     "Две недели — отлично!";
+
         } else if (days >= 7) {
+
             result =
                     "🥇 7 дней!\n\n" +
                     "Целая неделя!";
+
         } else if (days >= 3) {
+
             result =
                     "🥉 3 дня!\n\n" +
                     "Ты уже сделал серьёзный шаг.";
+
         } else if (days >= 1) {
+
             result =
                     "⭐ 1 день!\n\n" +
                     "Первая победа!";
+
         } else {
+
             result =
                     "🚭 Начало пути!\n\n" +
                     "Твоя первая цель — прожить " +
@@ -408,7 +495,9 @@ public class MainActivity extends Activity {
         }
 
         new android.app.AlertDialog.Builder(this)
-                .setTitle("🏆 Достижения")
+                .setTitle(
+                        "🏆 Достижения"
+                )
                 .setMessage(result)
                 .setPositiveButton(
                         "Продолжить",
@@ -420,14 +509,18 @@ public class MainActivity extends Activity {
     private void showStatistics() {
 
         long days =
-                (System.currentTimeMillis() -
-                        startTime) / 86400000;
+                (System.currentTimeMillis()
+                        - startTime)
+                        / 86400000;
 
         new android.app.AlertDialog.Builder(this)
-                .setTitle("📊 Статистика")
+                .setTitle(
+                        "📊 Статистика"
+                )
                 .setMessage(
                         "🚭 Дней без сигарет: " +
-                        days + "\n\n" +
+                        days +
+                        "\n\n" +
                         "🔥 Продолжай двигаться вперёд!\n\n" +
                         "Создатель:\n" +
                         "JABORZODA FAYZALI"
@@ -442,7 +535,9 @@ public class MainActivity extends Activity {
     private void resetTimer() {
 
         new android.app.AlertDialog.Builder(this)
-                .setTitle("🔄 Срыв")
+                .setTitle(
+                        "🔄 Срыв"
+                )
                 .setMessage(
                         "Срыв — это не конец пути.\n\n" +
                         "Начать счётчик заново?"
@@ -473,6 +568,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onResume() {
+
         super.onResume();
 
         handler.post(timerRunnable);
@@ -480,8 +576,11 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onPause() {
+
         super.onPause();
 
-        handler.removeCallbacks(timerRunnable);
+        handler.removeCallbacks(
+                timerRunnable
+        );
     }
 }
