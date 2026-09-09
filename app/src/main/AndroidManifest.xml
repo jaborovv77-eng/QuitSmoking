@@ -3,10 +3,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
-        android:allowBackup="true"
-        android:label="QUIT SMOKING"
-        android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+    android:allowBackup="true"
+    android:label="QUIT SMOKING"
+    android:icon="@drawable/quit_smoking_banner"
+    android:roundIcon="@drawable/quit_smoking_banner"
+    android:supportsRtl="true"
+    android:theme="@style/AppTheme">
 
         <activity
             android:name=".MainActivity"
